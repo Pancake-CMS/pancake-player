@@ -1,0 +1,120 @@
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<link rel="import" href="./bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="./bower_components/css-grid-lite/css-grid-lite.html">
+<link rel="import" href="./bower_components/app-route/app-location.html">
+<link rel="import" href="./bower_components/app-route/app-route.html">
+<link rel="import" href="./bower_components/polymerfire/firebase-app.html">
+
+<dom-module id="pancake-player">
+    <template>
+        <style type="text/css">
+            :host {
+                display: block;
+            }
+        </style>
+
+        <firebase-app
+            auth-domain="pancake-708c1.firebaseapp.com"
+            database-url="https://pancake-708c1.firebaseio.com"
+            api-key="AIzaSyBaU1D5Kj26kDuUEzLFX61SavRpE7u83D8">
+        </firebase-app>
+
+        <!-- app-location binds to the app's URL -->
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <!-- this app-route manages the top-level routes -->
+        <app-route
+            route="{{route}}"
+            pattern="/"></app-route>
+
+        <firebase-document></firebase-document>
+
+        <css-grid-lite
+            path="/"
+            rawcomponents="[[templatecomponents]]">
+        </css-grid-lite>
+    </template>
+    <script>
+        Polymer({
+            is: 'pancake-player',
+
+            properties: {
+                templatecomponents: {
+                    type: Object,
+                    notify: true,
+                    reflectToAttribute: false
+                },
+
+                path: {
+                    type: String,
+                    notify: true,
+                    observer: '_pathChanged'
+                },
+
+                route: {
+                    type: Object,
+                    notify: true
+                }
+            },
+
+            observers: [
+                '_updatePath(route.path)'
+            ],
+
+            ready: function() {
+                setTimeout(() => {
+                    this.set('route.path', '/pages/en-GB/hellooo-hello')
+                }, 10000);
+            },
+
+            _pathChanged: function() {
+                this.async( () => {
+                    this.$$('firebase-document').getStoredValue(this.path)
+                    .then((data) => {
+                        this.contentData = data.components;
+                        return this.$$('firebase-document').getStoredValue('/templates/' + data.template);
+                    })
+                    .then((data) => {
+                        if(!!this.contentData) {
+                            var mergedData = this._handleContent(data, this.contentData);
+                            this.set('templatecomponents', mergedData);
+                        } else {
+                            this.set('templatecomponents', data);
+                        }
+
+                        this._updateCssGridLite();
+                    });
+                });
+            },
+
+            _handleContent: function(obj1, obj2) {
+                Object.keys(obj2).forEach((key) => {
+                    obj1[key]['usercontent'] = obj2[key]['usercontent'] || {};
+
+                    // TODO: future work for nested nodes
+                    // if(!!obj1[key]['components']) {
+                    //     console.log('has inner components in ' + key);
+                    //     Object.keys(obj1[key]['components']).forEach((nestednode) => {
+                    //         console.log(nestednode);
+                    //         this._handleContent(obj1[key]['components'][nestednode], )
+                    //     });
+                    // }
+                });
+
+                return obj1;
+            },
+
+            _updatePath: function(path) {
+                this.path = path;
+            },
+
+            _updateCssGridLite: function() {
+                Polymer.dom(this.root).removeChild(this.$$('css-grid-lite'));
+                var cssGrid = document.createElement('css-grid-lite');
+                cssGrid.path = '/';
+                cssGrid.rawcomponents = this.templatecomponents;
+                Polymer.dom(this.root).appendChild(cssGrid);
+            }
+        });
+    </script>
+</dom-module>
