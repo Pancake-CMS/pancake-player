@@ -4,6 +4,7 @@
 <link rel="import" href="./bower_components/app-route/app-location.html">
 <link rel="import" href="./bower_components/app-route/app-route.html">
 <link rel="import" href="./bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="./bower_components/iron-signals/iron-signals.html">
 
 <dom-module id="pancake-player">
     <template>
@@ -14,9 +15,9 @@
         </style>
 
         <firebase-app
-            auth-domain="__YOUR_AUTH_DOMAIN__"
-            database-url="__YOUR_DATABASE_URL__"
-            api-key="__YOUR_API_KEY__">
+            auth-domain="pancake-708c1.firebaseapp.com"
+            database-url="https://pancake-708c1.firebaseio.com"
+            api-key="AIzaSyBaU1D5Kj26kDuUEzLFX61SavRpE7u83D8">
         </firebase-app>
 
         <!-- app-location binds to the app's URL -->
@@ -31,8 +32,11 @@
 
         <css-grid-lite
             path="/"
-            rawcomponents="[[templatecomponents]]">
+            rawcomponents="[[templatecomponents]]"
+            route="{{route}}">
         </css-grid-lite>
+
+        <iron-signals on-iron-signal-pancake-player-route-changed="_handleRouteChange"></iron-signals>
     </template>
     <script>
         Polymer({
@@ -54,6 +58,12 @@
                 route: {
                     type: Object,
                     notify: true
+                },
+
+                homepage: {
+                    type: String,
+                    notify: true,
+                    reflectToAttribute: true
                 }
             },
 
@@ -62,12 +72,13 @@
             ],
 
             ready: function() {
-                setTimeout(() => {
-                    this.set('route.path', '/pages/en-GB/hellooo-hello')
-                }, 10000);
+                this.set('route.path', this.homepage);
             },
 
             _pathChanged: function() {
+                if(!this.path) {
+                    return;
+                }
                 this.async( () => {
                     this.$$('firebase-document').getStoredValue(this.path)
                     .then((data) => {
@@ -114,6 +125,10 @@
                 cssGrid.path = '/';
                 cssGrid.rawcomponents = this.templatecomponents;
                 Polymer.dom(this.root).appendChild(cssGrid);
+            },
+
+            _handleRouteChange: function(e, detail) {
+                this.set('route.path', detail);
             }
         });
     </script>
