@@ -6,5 +6,28 @@
     </head>
     <body>
         <pancake-player homepage="/pages/en-US/home-page"></pancake-player>
+
+        <!-- polyfills -->
+        <!--<script src="./bower_components/webcomponentsjs/webcomponents.min.js"></script>-->
+        <script>
+            (function() {
+              if ('registerElement' in document
+                  && 'import' in document.createElement('link')
+                  && 'content' in document.createElement('template')) {
+                // platform is good!
+              } else {
+                // polyfill the platform!
+                var e = document.createElement('script');
+                e.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
+                document.body.appendChild(e);
+              }
+            })();
+        </script>
+
+        <!--<script src="./bower_components/webcomponentsjs/HTMLImports.min.js"></script>-->
+        <!--<script src="./bower_components/webcomponentsjs/CustomElements.min.js"></script>-->
+        <!--<script src="./bower_components/webcomponentsjs/MutationObserver.min.js"></script>-->
+        <!--<script src="./bower_components/webcomponentsjs/ShadowDOM.min.js"></script>-->
+        <!-- end - polyfills -->
     </body>
 </html>
